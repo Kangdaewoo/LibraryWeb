@@ -1,5 +1,3 @@
-'use strict';
-
 var Customer = require('../../model/customer');
 var jwt = require('jsonwebtoken');
 
