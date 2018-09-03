@@ -26,7 +26,11 @@ app.get('/', function(req, res) {
     res.send('Hello world');
 });
 app.get('/getBooks', function(req, res) {
-    Book.findBooks(req.query).then(function(books) {
+    const bookQuery = {
+        title: req.query,
+        author: req.query
+    }
+    Book.findBooks(bookQuery).then(function(books) {
         return res.json({success: true, books: books});
     }).catch(function(err) {
         return res.status(403).json({success: false, message: err.message});

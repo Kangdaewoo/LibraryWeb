@@ -21,12 +21,16 @@ Transaction.statics.createTransaction = function(query) {
     return newTransaction.save();
 }
 
+Transaction.statics.findTransaction = function(query) {
+    return this.findOne(query);
+}
+
 Transaction.statics.findTransactions = function(query) {
     return this.find(query);
 }
 
 Transaction.statics.return = function(query) {
-    return this.deleteOne(query);
+    return this.findOneAndRemove(query);
 }
 
 module.exports = mongoose.model('Transaction', Transaction);

@@ -1,8 +1,10 @@
 var router = require('express').Router();
 var authentification = require('./authentification');
 
-var Book = require('../../model/book');
-var Transaction = require('../../model/transaction');
+const Book = require('../../model/book');
+const Transaction = require('../../model/transaction');
+const Rating = require('../../model/rating');
+const ExpiredTransaction = require('../../model/expiredTransaction');
 
 router.post('/authentificate', authentification.authentificate);
 router.use(authentification.authentificated);
@@ -10,7 +12,12 @@ router.use(authentification.authentificated);
 
 router.post('/addBook', function(req, res) {
     if (req.decoded.isAdmin) {
-        Book.addBook(req.body).then(book => {
+        const bookQuery = {
+            title: req.body.title,
+            author: req.body.author,
+            quantity: req.body.quantity
+        }
+        Book.addBook(bookQuery).then(book => {
             return res.json({success: true, message: 'Book added successfully!'});
         }).catch(err => {
             res.status(403).json({success: false, message: err.message})
@@ -18,6 +25,14 @@ router.post('/addBook', function(req, res) {
     } else {
         return res.status(403).json({success: false, message: 'You have no permission to add a book!'});
     }
+});
+router.post('/rate', function(req, res) {
+    const transactionQuery = {
+        username: req.decoded.username,
+        title: req.body.title,
+        author: req.body.author
+    }
+    Transaction.findTransactions(transactionQuery)
 });
 
 
@@ -31,35 +46,62 @@ router.get('/getTransactions', function(req, res) {
 });
 
 
-router.put('/borrow', function(req, res) {
-    const bookQuery = {
+router.put('/borrow', function(req, res, next) {
+    const transactionQuery = {
+        username: req.decoded.username,
         title: req.body.title,
         author: req.body.author
     };
-    Book.borrow(bookQuery).then(function(book) {
-        if (book === null) {
-            return res.json({success: false, message: 'Not available!'});
+    Transaction.findTransaction(transactionQuery).then(function(transaction) {
+        if (!transaction) {
+            const bookQuery = {
+                title: req.body.title,
+                author: req.body.author
+            }
+            return Book.borrow(bookQuery);
         } else {
-            const newTransaction = {
-                username: req.decoded.username,
-                title: book.title,
-                author: book.author
-            };
-            Transaction.createTransaction(newTransaction).then(function(transaction) {
-                return res.json({success: true, message: 'Borrowed!', transaction: transaction});
-            });
+            res.status(403).json({success: false, message: 'You have already borrowed this book.'});
+            next();
         }
+    }).then(function(book) {
+        if (book === null) {
+            res.status(403).json({success: false, message: 'Not available!'});
+            next();
+        } else {
+            return Transaction.createTransaction(transactionQuery);
+        }
+    }).then(function(book) {
+        return res.json({success: true, message: 'Borrowed!'});
     }).catch(function(err) {
-        return res.json({success: false, message: err.message});
+        return res.status(403).json({success: false, message: err.message});
     });
 });
-router.put('/return', function(req, res) {
+router.put('/return', function(req, res, next) {
     const transactionQuery = {
         title: req.body.title,
         author: req.body.author,
         username: req.decoded.username
     };
     Transaction.return(transactionQuery).then(function(transaction) {
+        console.log('transaction1' + transaction);
+        if (transaction) {
+            return ExpiredTransaction.return(transactionQuery);
+        } else {
+            res.json({success: false, message: 'You did not borrow this book!'});
+            next();
+        }
+    }).then(function(transaction) {
+        if (transaction) {
+            const bookQuery = {
+                title: req.body.title,
+                author: req.body.author
+            }
+            return Book.return(bookQuery);
+        } else {
+            res.status(403).json({success: false, message: 'You have already returned this book!'});
+            next();
+        }
+    }).then(function(book) {
         return res.json({success: true, message: 'Returned!'});
     }).catch(function(err) {
         return res.status(403).json({success: false, message: err.message});

@@ -12,7 +12,11 @@ const Book = new Schema({
     quantity: {
         type: Number,
         required: true,
-        min: 0
+        validate: {
+            validator: function(q) {
+                return Number.isInteger(q) && q >= 0;
+            }
+        }
     }
 });
 Book.index({title: 1, author: 1}, {unique: true});
@@ -45,6 +49,10 @@ Book.statics.borrow = function(query) {
         }
     };
     return this.findBook(query).then(update);
+}
+
+Book.statics.return = function(query) {
+    return this.findOneAndUpdate(query, {'$inc': {quantity: 1}});
 }
 
 module.exports = mongoose.model('Book', Book);
