@@ -17,6 +17,7 @@ mongoose.connect(config.mongoUri, {useNewUrlParser: true});
 var Customer = require('./backendjs/model/customer');
 var Book = require('./backendjs/model/book');
 var Transaction = require('./backendjs/model/transaction');
+var Rating = require('./backendjs/model/rating');
 
 var router = require('./backendjs/api/authentification/router');
 app.use('/api', router);
@@ -27,11 +28,22 @@ app.get('/', function(req, res) {
 });
 app.get('/getBooks', function(req, res) {
     const bookQuery = {
-        title: req.query,
-        author: req.query
+        title: req.query.title,
+        author: req.query.author
     }
     Book.findBooks(bookQuery).then(function(books) {
         return res.json({success: true, books: books});
+    }).catch(function(err) {
+        return res.status(403).json({success: false, message: err.message});
+    });
+});
+app.get('./getRatings', function(req, res) {
+    const ratingQuery = {
+        title: req.query.title,
+        author: req.query.author
+    }
+    Rating.findRatings(ratingQuery).then(function(ratings) {
+        return res.json({success: true, ratings: ratings});
     }).catch(function(err) {
         return res.status(403).json({success: false, message: err.message});
     });

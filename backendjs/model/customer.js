@@ -24,12 +24,19 @@ const Customer = new Schema({
     }
 });
 
+
+const crypto = require('crypto');
+const config = require('../config');
 Customer.statics.createCustomer = function(query) {
+    const encrypted = crypto.createHmac('sha1', config.secret).update(query.password).digest('base64');
+    query.password = encrypted;
     const newCustomer = new this(query);
     return newCustomer.save();
 }
 
 Customer.statics.findCustomer = function(query) {
+    const encrypted = crypto.createHmac('sha1', config.secret).update(query.password).digest('base64');
+    query.password = encrypted;
     return this.findOne(query);
 }
 

@@ -29,4 +29,8 @@ ExpiredTransaction.statics.return = function(query) {
     return this.findOneAndUpdate(query, {'$inc': {quantity: 1}}, {upsert: true});
 };
 
+ExpiredTransaction.statics.findTransaction = function(query) {
+    return this.findOne(query);
+}
+
 module.exports = mongoose.model('ExpiredTransaction', ExpiredTransaction);

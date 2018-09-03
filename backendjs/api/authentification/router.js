@@ -26,13 +26,33 @@ router.post('/addBook', function(req, res) {
         return res.status(403).json({success: false, message: 'You have no permission to add a book!'});
     }
 });
-router.post('/rate', function(req, res) {
+router.post('/rate', function(req, res, next) {
     const transactionQuery = {
         username: req.decoded.username,
         title: req.body.title,
         author: req.body.author
     }
-    Transaction.findTransactions(transactionQuery)
+    ExpiredTransaction.findTransaction(transactionQuery).then(function(transaction) {
+        if (transaction) {
+            const ratingQuery = {
+                username: req.decoded.username,
+                title: req.body.title,
+                author: req.body.author,
+                rating: req.body.rating
+            };
+            if (req.body.comment) {
+                ratingQuery.comment = req.body.comment;
+            }
+            return Rating.createRating(ratingQuery);
+        } else {
+            res.status(403).json({success: false, message: 'You did not read this book!'});
+            next();
+        }
+    }).then(function(rating) {
+        return res.json({success: true, message: 'Rating recorded!'});
+    }).catch(function(err) {
+        return res.status(403).json({success: false, message: err.message});
+    });
 });
 
 
@@ -64,11 +84,11 @@ router.put('/borrow', function(req, res, next) {
             next();
         }
     }).then(function(book) {
-        if (book === null) {
+        if (book) {
+            return Transaction.createTransaction(transactionQuery);
+        } else {
             res.status(403).json({success: false, message: 'Not available!'});
             next();
-        } else {
-            return Transaction.createTransaction(transactionQuery);
         }
     }).then(function(book) {
         return res.json({success: true, message: 'Borrowed!'});
