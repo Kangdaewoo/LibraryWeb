@@ -12,6 +12,10 @@ const Transaction = new Schema({
     author: {
         type: String,
         required: true
+    },
+    date: {
+        type: Date,
+        default: Date.now
     }
 });
 Transaction.index({username: 1, title: 1, author: 1}, {unique: true});

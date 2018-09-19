@@ -13,24 +13,27 @@ const ExpiredTransaction = new Schema({
         type: String,
         required: true
     },
-    quantity: {
-        type: Number,
-        default: 1,
-        validate: {
-            validator: function(quantity) {
-                return Number.isInteger(quantity) && quantity >= 1;
-            }
-        }
+    returnedDate: {
+        type: Date,
+        default: Date.now
+    },
+    borrowedDate: {
+        type: Date,
+        required: true
     }
 });
-ExpiredTransaction.index({username: 1, title: 1, author: 1}, {unique: true});
 
 ExpiredTransaction.statics.return = function(query) {
-    return this.findOneAndUpdate(query, {'$inc': {quantity: 1}}, {upsert: true});
+    const newTransaction = new this(query);
+    return newTransaction.save();
 };
 
 ExpiredTransaction.statics.findTransaction = function(query) {
     return this.findOne(query);
+}
+
+ExpiredTransaction.statics.findTransactions = function(query) {
+    return this.find(query);
 }
 
 module.exports = mongoose.model('ExpiredTransaction', ExpiredTransaction);

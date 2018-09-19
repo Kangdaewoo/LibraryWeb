@@ -29,16 +29,27 @@ const Rating = new Schema({
         }
     }
 });
-
 Rating.index({username: 1, title: 1, author: 1}, {unique: true});
+
+
+Rating.statics.createRating = function(query) {
+    const newRating = new this(query);
+    return newRating.save();
+}
+
+Rating.statics.findRating = function(query) {
+    return this.findOne(query);
+}
 
 Rating.statics.findRatings = function(query) {
     return this.find(query);
 }
 
-Rating.statics.createRating = function(query) {
-    const newRating = new this(query);
-    return newRating.save();
+Rating.statics.rerate = function(query, newComment) {
+    if (newComment == null) {
+        newComment = '';
+    }
+    return this.findOneAndUpdate(query, {'$set': {comment: newComment}});
 }
 
 module.exports = mongoose.model('Rating', Rating);

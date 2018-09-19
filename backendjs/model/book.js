@@ -35,8 +35,8 @@ Book.statics.findBooks = function(query) {
 }
 
 Book.statics.addBook = function(query) {
-    const newBook = new this(query);
-    return newBook.save();
+    const searchQuery = {title: query.title, author: query.author};
+    return this.findOneAndUpdate(searchQuery, {'$inc': {quantity: query.quantity}}, {upsert: true});
 }
 
 Book.statics.borrow = function(query) {
@@ -45,7 +45,7 @@ Book.statics.borrow = function(query) {
             book.quantity -= 1;
             return book.save();
         } else {
-            return null;
+            throw new Error('Book is not available!');
         }
     };
     return this.findBook(query).then(update);
