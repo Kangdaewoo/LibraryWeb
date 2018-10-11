@@ -12,17 +12,21 @@ module.exports = {
                     message: 'Who are you?'
                 });
             } else {
-                var token = jwt.sign({
-                    username: customer.username,
-                    isAdmin: customer.isAdmin
-                }, 
-                secret,
-                {expiresIn: 1440});
-                return res.json({
-                    success: true,
-                    message: 'Welcome!',
-                    token: token
-                });
+                jwt.sign(
+                    {username: customer.username, isAdmin: customer.isAdmin}, 
+                    secret,
+                    {expiresIn: 1440},
+                    (err, token) => {
+                        if (err) {
+                            return res.json({success: false, message: 'Failed to generate token.'});
+                        }
+                        return res.json({
+                            success: true,
+                            message: 'Welcome!',
+                            token: token
+                        });
+                    }
+                );
             }
         };
 
