@@ -2,7 +2,7 @@ var Customer = require('../../model/customer');
 var jwt = require('jsonwebtoken');
 
 module.exports = {
-    authentificate: function(req, res) {
+    authenticate: function(req, res) {
         const secret = req.app.get('superSecret');
 
         const issueToken = function(customer) {
@@ -37,7 +37,7 @@ module.exports = {
         Customer.findCustomer(req.body).then(issueToken).catch(onError);
     },
 
-    authentificated: function(req, res, next) {
+    authenticated: function(req, res, next) {
         const token = req.body.token || req.query.token;
         if (token) {
             jwt.verify(token, req.app.get('superSecret'), function(err, decoded) {

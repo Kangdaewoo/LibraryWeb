@@ -20,7 +20,7 @@ var Book = require('./backendjs/model/book');
 var Transaction = require('./backendjs/model/transaction');
 var Rating = require('./backendjs/model/rating');
 
-var router = require('./backendjs/api/authentification/router');
+var router = require('./backendjs/api/authentication/router');
 app.use('/api', router);
 
 

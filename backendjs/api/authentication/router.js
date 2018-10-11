@@ -1,13 +1,13 @@
 var router = require('express').Router();
-var authentification = require('./authentification');
+var authentication = require('./authentication');
 
 const Book = require('../../model/book');
 const Transaction = require('../../model/transaction');
 const Rating = require('../../model/rating');
 const ExpiredTransaction = require('../../model/expiredTransaction');
 
-router.post('/authentificate', authentification.authentificate);
-router.use(authentification.authentificated);
+router.post('/authenticate', authentication.authenticate);
+router.use(authentication.authenticated);
 
 
 router.post('/addBook', function(req, res) {
