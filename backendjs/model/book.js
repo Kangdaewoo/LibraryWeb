@@ -17,6 +17,28 @@ const Book = new Schema({
                 return Number.isInteger(q) && q >= 0;
             }
         }
+    },
+
+    ratings: {
+        username: {
+            type: String,
+            required: true
+        },
+        rating: {
+            type: Number,
+            required: true,
+            min: 0,
+            max: 10
+        },
+        comment: {
+            type: String,
+            default: "",
+            validate: {
+                validator: function(comment) {
+                    return comment.length <= 300;
+                }
+            }
+        }
     }
 });
 Book.index({title: 1, author: 1}, {unique: true});
