@@ -7,18 +7,19 @@ module.exports = {
 
         const issueToken = function(customer) {
             if (!customer) {
-                return res.json({
-                    success: false,
-                    message: 'Who are you?'
-                });
+                throw new Error('Who are you?');
             } else {
-                jwt.sign(
-                    {username: customer.username, isAdmin: customer.isAdmin}, 
+                req.session.name = customer.name;
+                req.session.transactions = customer.transactions;
+                jwt.sign({
+                        username: customer.logins.username, 
+                        isAdmin: customer.logins.isAdmin
+                    }, 
                     secret,
                     {expiresIn: 1440},
                     (err, token) => {
                         if (err) {
-                            return res.json({success: false, message: 'Failed to generate token.'});
+                            throw new Error('Failed to generate a token.');
                         }
                         return res.json({
                             success: true,
@@ -30,17 +31,18 @@ module.exports = {
             }
         };
 
-        const onError = function(err) {
-            res.status(403).json({message: err.message});
-        }
-
-        Customer.findCustomer(req.body).then(issueToken).catch(onError);
+        const query = {
+            username: req.body.username, 
+            password: req.body.password};
+        Customer.findCustomer(query).then(issueToken).catch(err => {
+            return res.json({success: false, message: err.message});
+        });
     },
 
     authenticated: function(req, res, next) {
         const token = req.body.token || req.query.token;
         if (token) {
-            jwt.verify(token, req.app.get('superSecret'), function(err, decoded) {
+            jwt.verify(token, req.app.get('superSecret'), (err, decoded) => {
                 if (err) {
                     return res.json({
                         success: false,

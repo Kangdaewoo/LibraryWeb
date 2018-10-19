@@ -23,7 +23,7 @@ const Customer = new Schema({
             default: false
         }
     },
-    transactions: {
+    transactions: [{
         title: {
             type: String
         },
@@ -33,21 +33,42 @@ const Customer = new Schema({
         date: {
             type: Date
         }
-    }
+    }]
 });
-
+Customer.index({name: 1}, {unique: true});
 
 const crypto = require('crypto');
 const config = require('../config');
 Customer.statics.createCustomer = function(query) {
-    query.logins.password = crypto.createHmac('sha1', config.secret).update(query.logins.password).digest('base64');
-    const newCustomer = new this(query);
+    const newCustomerQuery = {
+        name: query.name,
+        logins: {
+            username: query.username,
+            password: crypto.createHmac('sha1', config.secret).update(query.password).digest('base64')
+        }
+    };
+
+    const newCustomer = new this(newCustomerQuery);
     return newCustomer.save();
 }
 
 Customer.statics.findCustomer = function(query) {
-    query.password = crypto.createHmac('sha1', config.secret).update(query.password).digest('base64');
-    return this.findOne(query);
+    const customerQuery = {
+        'logins.username': query.username,
+        'logins.password': crypto.createHmac('sha1', config.secret).update(query.password).digest('base64')
+    };
+    return this.findOne(customerQuery);
+}
+
+Customer.statics.borrow = function(query) {
+    return this.findOne({name: query.name}).then(customer => {
+        customer.transactions.push({
+            title: query.title,
+            author: query.author,
+            date: new Date()
+        });
+        return customer.save();
+    });
 }
 
 module.exports = mongoose.model('Customer', Customer);

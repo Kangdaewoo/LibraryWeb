@@ -19,14 +19,12 @@ const Book = new Schema({
         }
     },
 
-    ratings: {
+    ratings: [{
         username: {
-            type: String,
-            required: true
+            type: String
         },
         rating: {
             type: Number,
-            required: true,
             min: 0,
             max: 10
         },
@@ -39,21 +37,30 @@ const Book = new Schema({
                 }
             }
         }
-    }
+    }]
 });
 Book.index({title: 1, author: 1}, {unique: true});
 
 Book.statics.findBook = function(query) {
+    const bookQuery = {
+        title: query.title,
+        author: query.author
+    };
     return this.findOne(query);
 }
 
 Book.statics.findBooks = function(query) {
-    return this.find({
-        titleAndAuthor: {
-            '$regex': '.*' + query.title + '.* by .*' + query.author + '.*',
+    const bookQuery = {
+        title: {
+            '$regex': '.*' + query.title + '.*',
+            '$options': 'i'
+        },
+        author: {
+            '$regex': '.*' + query.author + '.*',
             '$options': 'i'
         }
-    });
+    }
+    return this.find(bookQuery);
 }
 
 Book.statics.addBook = function(query) {

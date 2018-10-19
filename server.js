@@ -31,15 +31,48 @@ app.get('/', function(req, res) {
 app.post('/customer', function(req, res) {
     const newCustomer = {
         name: req.body.name,
-        logins: {
-            username: req.body.username,
-            password: req.body.password
-        }
+        username: req.body.username,
+        password: req.body.password
     };
+
     Customer.createCustomer(newCustomer).then(function(customer) {
-        res.json({success: true, message: 'Welcome!'});
+        res.json({success: true, customer: newCustomer});
     }).catch(function(err) {
         res.status(403).json({success: false, message: err.message});
+    });
+});
+
+
+app.get('/book', function(req, res) {
+    const query = {
+        title: req.query.title,
+        author: req.query.author
+    }
+
+    Book.findBook(query).then(book => {
+        if (!book) {
+            return res.json({success: true, message: "No such book"});
+        }
+
+        return res.json({success: true, book: book});
+    }).catch(err => {
+        return res.json({success: false, message: err.message});
+    });
+});
+app.get('/books', function(req, res) {
+    const query = {
+        title: req.query.title,
+        author: req.query.author
+    }
+
+    Book.findBooks(query).then(books => {
+        if (!books) {
+            return res.json({success: true, message: "No such books"});
+        }
+
+        return res.json({success: true, books: books});
+    }).catch(err => {
+        return res.json({success: false, message: err.message});
     });
 });
 
